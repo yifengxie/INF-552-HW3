@@ -1,0 +1,8 @@
+dataParsing.js
+node_modules
+package-lock.json
+package.json
+test.csv
+test.geojson
+.ipynb_checkpoints
+allCollections.geojson

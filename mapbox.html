@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+
+        #menu {
+            background: #fff;
+            position: absolute;
+            z-index: 1;
+            top: 20px;
+            right: 50px;
+            border-radius: 3px;
+            width: 150px;
+            border: 1px solid rgba(0,0,0,0.4);
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        #menu a {
+            font-size: 13px;
+            color: #404040;
+            display: block;
+            margin: 0;
+            padding: 0;
+            padding: 10px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0,0,0,0.25);
+            text-align: center;
+        }
+
+        #menu a:last-child {
+            border: none;
+        }
+
+        #menu a:hover {
+            background-color: #f8f8f8;
+            color: #404040;
+        }
+
+        #menu a.active {
+            background-color: #3887be;
+            color: #ffffff;
+        }
+
+        #menu a.active:hover {
+            background: #3074a4;
+        }
+    </style>
+</head>
+<body>
+
+<nav id="menu"></nav>
+<div id='map'></div>
+
+<script type="text/javascript" src="bulkyItems.geojson"></script>
+<script type="text/javascript" src="electronicWaste.geojson"></script>
+<script type="text/javascript" src="illegalDumpingPickup.geojson"></script>
+<script type="text/javascript" src="metalHouseholdAppliances.geojson"></script>
+<script type="text/javascript" src="averageDuration.geojson"></script>
+
+<script>
+
+// Add and initialize map
+mapboxgl.accessToken = 'pk.eyJ1IjoieWlmZW5neGllIiwiYSI6ImNqNWJ0MXNhZDAybTQyd3Fva28xbzVjZzQifQ.Ctyof2YNBISlHTwyq-5J4A';
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/yifengxie/cj5lwehti2wdd2snr8f0efz0p', // stylesheet location
+    center: [-118.3837, 34.0522], // starting position [lng, lat]
+    zoom: 10 // starting zoom
+});
+
+// Add zoom and rotation controls to the map.
+map.addControl(new mapboxgl.NavigationControl());
+
+
+map.on('load', function() {
+    // Add a new source from our GeoJSON data and set the
+    // 'cluster' option to true. GL-JS will add the point_count property to your source data.
+    map.addSource("bulkyItems", {
+        type: "geojson",
+        data: bulkyItemsData,
+        cluster: true,
+        clusterMaxZoom: 100, // Max zoom to cluster points on
+        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+    });
+    map.addLayer({
+        id: "clusters1",
+        type: "circle",
+        source: "bulkyItems",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [200, "#51bbd6"],
+                    [500, "#f1f075"],
+                    [1000, "#f28cb1"],
+                ]
+            },
+            "circle-radius": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [0, 20],
+                    [100, 30],
+                    [750, 40]
+                ]
+            }
+        }
+    });
+    map.addLayer({
+        id: "cluster-count1",
+        type: "symbol",
+        source: "bulkyItems",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none",
+            "text-field": "{point_count_abbreviated}",
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12
+        }
+    });
+    map.addLayer({
+        id: "unclustered-point1",
+        type: "circle",
+        source: "bulkyItems",
+        filter: ["!has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": "#11b4da",
+            "circle-radius": 10,
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#fff"
+        }
+    });
+
+
+    map.addSource("electronicWaste", {
+        type: "geojson",
+        data: electronicWasteData,
+        cluster: true,
+        clusterMaxZoom: 100, // Max zoom to cluster points on
+        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+    });
+    map.addLayer({
+        id: "clusters2",
+        type: "circle",
+        source: "electronicWaste",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [40, "#51bbd6"],
+                    [70, "#f1f075"],
+                    [100, "#f28cb1"],
+                ]
+            },
+            "circle-radius": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [0, 20],
+                    [100, 30],
+                    [750, 40]
+                ]
+            }
+        }
+    });
+    map.addLayer({
+        id: "cluster-count2",
+        type: "symbol",
+        source: "electronicWaste",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none",
+            "text-field": "{point_count_abbreviated}",
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12
+        }
+    });
+    map.addLayer({
+        id: "unclustered-point2",
+        type: "circle",
+        source: "electronicWaste",
+        filter: ["!has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": "#11b4da",
+            "circle-radius": 10,
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#fff"
+        }
+    });
+
+
+    map.addSource("illegalDumpingPickup", {
+        type: "geojson",
+        data: illegalDumpingPickupData,
+        cluster: true,
+        clusterMaxZoom: 100, // Max zoom to cluster points on
+        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+    });
+    map.addLayer({
+        id: "clusters3",
+        type: "circle",
+        source: "illegalDumpingPickup",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [200, "#51bbd6"],
+                    [300, "#f1f075"],
+                    [400, "#f28cb1"],
+                ]
+            },
+            "circle-radius": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [0, 20],
+                    [100, 30],
+                    [750, 40]
+                ]
+            }
+        }
+    });
+    map.addLayer({
+        id: "cluster-count3",
+        type: "symbol",
+        source: "illegalDumpingPickup",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none",
+            "text-field": "{point_count_abbreviated}",
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12
+        }
+    });
+    map.addLayer({
+        id: "unclustered-point3",
+        type: "circle",
+        source: "illegalDumpingPickup",
+        filter: ["!has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": "#11b4da",
+            "circle-radius": 10,
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#fff"
+        }
+    });
+
+    map.addSource("metalHouseholdAppliances", {
+        type: "geojson",
+        data: metalHouseholdAppliancesData,
+        cluster: true,
+        clusterMaxZoom: 100, // Max zoom to cluster points on
+        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+    });
+    map.addLayer({
+        id: "clusters4",
+        type: "circle",
+        source: "metalHouseholdAppliances",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [40, "#51bbd6"],
+                    [60, "#f1f075"],
+                    [80, "#f28cb1"],
+                ]
+            },
+            "circle-radius": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [0, 20],
+                    [100, 30],
+                    [750, 40]
+                ]
+            }
+        }
+    });
+    map.addLayer({
+        id: "cluster-count4",
+        type: "symbol",
+        source: "metalHouseholdAppliances",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none",
+            "text-field": "{point_count_abbreviated}",
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12
+        }
+    });
+    map.addLayer({
+        id: "unclustered-point4",
+        type: "circle",
+        source: "metalHouseholdAppliances",
+        filter: ["!has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": "#11b4da",
+            "circle-radius": 10,
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#fff"
+        }
+    });
+
+
+    map.addSource("averageDuration", {
+        type: "geojson",
+        data: averageDurationData,
+        cluster: true,
+        clusterMaxZoom: 100, // Max zoom to cluster points on
+        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+    });
+    map.addLayer({
+        id: "clusters5",
+        type: "circle",
+        source: "averageDuration",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [350, "#51bbd6"],
+                    [400, "#f1f075"],
+                    [450, "#f28cb1"],
+                ]
+            },
+            "circle-radius": {
+                property: "point_count",
+                type: "interval",
+                stops: [
+                    [0, 20],
+                    [100, 30],
+                    [750, 40]
+                ]
+            }
+        }
+    });
+    var aveDur = "{point_count_abbreviated}";
+    aveDur = parseInt(aveDur);
+    aveDur = aveDur.toString();
+    map.addLayer({
+        id: "cluster-count5",
+        type: "symbol",
+        source: "averageDuration",
+        filter: ["has", "point_count"],
+        layout: {
+            "visibility": "none",
+            "text-field": "{point_count_abbreviated}/100",
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12
+        }
+    });
+    map.addLayer({
+        id: "unclustered-point5",
+        type: "circle",
+        source: "averageDuration",
+        filter: ["!has", "point_count"],
+        layout: {
+            "visibility": "none"
+        },
+        paint: {
+            "circle-color": "#11b4da",
+            "circle-radius": 10,
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#fff"
+        }
+    });
+
+});
+
+// Add toggling table
+var toggleableLayerIds = ['archive-0nptmp','clusters1','clusters2','clusters3','clusters4','clusters5'];
+
+for (var i = 0; i < toggleableLayerIds.length; i++) {
+    var id = toggleableLayerIds[i];
+
+    var link = document.createElement('a');
+    link.href = '#';
+    link.className = 'active';
+
+    if (id == 'archive-0nptmp') {
+        link.textContent = 'LA city';
+        link.onclick = function (e) {
+            var clickedLayer = this.textContent;
+            e.preventDefault();
+            e.stopPropagation();
+            var visibility = map.getLayoutProperty('archive-0nptmp', 'visibility');
+            if (visibility === 'visible') {
+                map.setLayoutProperty('archive-0nptmp', 'visibility', 'none');
+                this.className = '';
+            } else {
+                this.className = 'active';
+                map.setLayoutProperty('archive-0nptmp', 'visibility', 'visible');
+            }
+        }
+    }
+    else if (id == 'clusters1') {
+        link.textContent = 'Bulky Items';
+        link.className = '';
+        link.onclick = function (e) {
+            var clickedLayer = this.textContent;
+            e.preventDefault();
+            e.stopPropagation();
+            var visibility = map.getLayoutProperty('clusters1', 'visibility');
+            if (visibility === 'visible') {
+                map.setLayoutProperty('clusters1', 'visibility', 'none');
+                map.setLayoutProperty('cluster-count1', 'visibility', 'none');
+                map.setLayoutProperty('unclustered-point1', 'visibility', 'none');
+                this.className = '';
+            } else {
+                this.className = 'active';
+                map.setLayoutProperty('clusters1', 'visibility', 'visible');
+                map.setLayoutProperty('cluster-count1', 'visibility', 'visible');
+                map.setLayoutProperty('unclustered-point1', 'visibility', 'visible');
+            }
+        };
+    }
+    else if (id == 'clusters2') {
+        link.textContent = 'Electronic Waste';
+        link.className = '';
+        link.onclick = function (e) {
+            var clickedLayer = this.textContent;
+            e.preventDefault();
+            e.stopPropagation();
+            var visibility = map.getLayoutProperty('clusters2', 'visibility');
+            if (visibility === 'visible') {
+                map.setLayoutProperty('clusters2', 'visibility', 'none');
+                map.setLayoutProperty('cluster-count2', 'visibility', 'none');
+                map.setLayoutProperty('unclustered-point2', 'visibility', 'none');
+                this.className = '';
+            } else {
+                this.className = 'active';
+                map.setLayoutProperty('clusters2', 'visibility', 'visible');
+                map.setLayoutProperty('cluster-count2', 'visibility', 'visible');
+                map.setLayoutProperty('unclustered-point2', 'visibility', 'visible');
+            }
+        };
+    }
+    else if (id == 'clusters3') {
+        link.textContent = 'Illegal Dumping Pickup';
+        link.className = '';
+        link.onclick = function (e) {
+            var clickedLayer = this.textContent;
+            e.preventDefault();
+            e.stopPropagation();
+            var visibility = map.getLayoutProperty('clusters3', 'visibility');
+            if (visibility === 'visible') {
+                map.setLayoutProperty('clusters3', 'visibility', 'none');
+                map.setLayoutProperty('cluster-count3', 'visibility', 'none');
+                map.setLayoutProperty('unclustered-point3', 'visibility', 'none');
+                this.className = '';
+            } else {
+                this.className = 'active';
+                map.setLayoutProperty('clusters3', 'visibility', 'visible');
+                map.setLayoutProperty('cluster-count3', 'visibility', 'visible');
+                map.setLayoutProperty('unclustered-point3', 'visibility', 'visible');
+            }
+        };
+    }
+    else if (id == 'clusters4') {
+        link.textContent = 'Metal/Household Appliances';
+        link.className = '';
+        link.onclick = function (e) {
+            var clickedLayer = this.textContent;
+            e.preventDefault();
+            e.stopPropagation();
+            var visibility = map.getLayoutProperty('clusters4', 'visibility');
+            if (visibility === 'visible') {
+                map.setLayoutProperty('clusters4', 'visibility', 'none');
+                map.setLayoutProperty('cluster-count4', 'visibility', 'none');
+                map.setLayoutProperty('unclustered-point4', 'visibility', 'none');
+                this.className = '';
+            } else {
+                this.className = 'active';
+                map.setLayoutProperty('clusters4', 'visibility', 'visible');
+                map.setLayoutProperty('cluster-count4', 'visibility', 'visible');
+                map.setLayoutProperty('unclustered-point4', 'visibility', 'visible');
+            }
+        };
+    }
+    else if (id == 'clusters5') {
+        link.textContent = 'average Duration';
+        link.className = '';
+        link.onclick = function (e) {
+            var clickedLayer = this.textContent;
+            e.preventDefault();
+            e.stopPropagation();
+            var visibility = map.getLayoutProperty('clusters5', 'visibility');
+            if (visibility === 'visible') {
+                map.setLayoutProperty('clusters5', 'visibility', 'none');
+                map.setLayoutProperty('cluster-count5', 'visibility', 'none');
+                map.setLayoutProperty('unclustered-point5', 'visibility', 'none');
+                this.className = '';
+            } else {
+                this.className = 'active';
+                map.setLayoutProperty('clusters5', 'visibility', 'visible');
+                map.setLayoutProperty('cluster-count5', 'visibility', 'visible');
+                map.setLayoutProperty('unclustered-point5', 'visibility', 'visible');
+            }
+        };
+    }
+    var layers = document.getElementById('menu');
+    layers.appendChild(link);
+}
+</script>
+
+</body>
+</html>
